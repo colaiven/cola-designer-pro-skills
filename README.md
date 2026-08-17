@@ -2,7 +2,7 @@
 
 给 **Claude Code**（以及 Codex 等 AI agent）提供两个与 [Cola Designer Pro](https://cdesign.fun/)（一款可视化大屏 / 报表设计器）打交道的技能：
 
-1. **`create-custom-component`** —— 在 Cola Designer Pro 前端仓库里**新增一个自定义可视化组件**（渲染组件 + attrs 默认配置 + 属性表单 + 注册 + 主题配色登记），端到端一次性搞定。此技能只适用于购买了cola-designer-pro商业版并用于源代码的用户。
+1. **`create-custom-component`** —— 在 Cola Designer Pro 前端仓库里**新增一个自定义可视化组件**（渲染组件 + attrs 默认配置 + 属性表单 + 注册 + 主题配色登记），端到端一次性搞定。此技能只适用于购买了cola-designer-pro商业版并拥有源代码的用户。
 2. **`generate-design`** —— 根据需求**直接生成一份可导入的大屏 / 报表设计文件（`.cd`）**，产出合法、可直接拖进设计器的成品。此技能适用**所有用户**，官网地址：[Cola Designer Pro](https://cdesign.fun/)
 
 | Skill                     | 能力                                                                             | 适用对象                                         | 产出                            |
@@ -34,10 +34,13 @@ cola-designer-pro-skills/
 
 把下面这句话发给你电脑上的 Claude（需已安装 Claude Code）：
 
-> 请安装这个仓库里的 skills：https://github.com/colaiven/cola-designer-pro-skills
+> 请安装这个仓库里的 skills：https://gitee.com/colaiven/cola-designer-pro-skills
 > 按仓库 README 的「AI 安装指令」一节执行。
 
 Claude 会自动克隆仓库、复制 skills，装完即可直接使用。
+
+> 💡 **国内用户优先使用 Gitee 仓库**（速度快、无需梯子）：`https://gitee.com/colaiven/cola-designer-pro-skills`
+> 海外用户或 GitHub 用户可使用：`https://github.com/colaiven/cola-designer-pro-skills`
 
 ---
 
@@ -48,7 +51,11 @@ Claude 会自动克隆仓库、复制 skills，装完即可直接使用。
 ### 1. 克隆仓库到临时目录
 
 ```bash
-git clone https://github.com/colaiven/cola-designer-pro-skills.git /tmp/cdp-skills
+# 国内用户优先使用 Gitee（速度快、无需梯子）
+git clone https://gitee.com/colaiven/cola-designer-pro-skills.git /tmp/cdp-skills
+
+# 海外用户或 GitHub 用户可使用：
+# git clone https://github.com/colaiven/cola-designer-pro-skills.git /tmp/cdp-skills
 ```
 
 无 git 环境则下载 zip 解压。
@@ -82,7 +89,13 @@ Skills 的 `SKILL.md` 只需被放到 Claude Code 能发现的位置即可，无
 
 ## 📦 手动安装（人类版）
 
-1. 克隆本仓库：`git clone https://github.com/colaiven/cola-designer-pro-skills.git`
+1. 克隆本仓库：
+   ```bash
+   # 国内优先
+   git clone https://gitee.com/colaiven/cola-designer-pro-skills.git
+   # 海外 / GitHub
+   # git clone https://github.com/colaiven/cola-designer-pro-skills.git
+   ```
 2. 把需要的 skill 目录原样复制到目标位置：
    - 用户级（对所有项目生效）：`~/.claude/skills/`
    - 项目级（仅该项目生效）：`<项目>/.claude/skills/`
@@ -120,7 +133,7 @@ Skills 的 `SKILL.md` 只需被放到 Claude Code 能发现的位置即可，无
 
 ## 说明与注意
 
-- `generate-design` 当前**只支持大屏模式**（`designType: "screen"`），不涉及仪表盘/报表编辑器（report-editor）。
+- `generate-design` 支持**单页大屏**（`scaleType: 1`，固定 1920×1080 全屏铺满）和**报告/长页**（`scaleType: 2`，宽度 1920、高度按内容自动计算可滚动），不涉及仪表盘编辑器（report-editor）。
 - `.cd` 文件有**版本校验**：默认按支持版本 `2.7.18` 输出，若目标系统是其它版本，需先告知版本号（详见 `generate-design/SKILL.md` 第 0 节）。
 - 生成 `.cd` 时**背景图 `bgImg` 默认置空**，导入后可在设计器「大屏配置 → 背景图片」自行选择。
 - `create-custom-component` 面向 cola-designer-pro 前端仓库（Vue3 纯 JS + TDesign），不适用于其它技术栈项目。

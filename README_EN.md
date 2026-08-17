@@ -35,10 +35,13 @@ cola-designer-pro-skills/
 
 Send the following message to the Claude running on your machine (Claude Code must be installed):
 
-> Please install the skills from this repository: https://github.com/colaiven/cola-designer-pro-skills
+> Please install the skills from this repository: https://gitee.com/colaiven/cola-designer-pro-skills
 > Follow the "AI Install Instructions" section of the repo README.
 
 Claude will clone the repo, copy the skills, and they work immediately after installation.
+
+> 💡 **For users in China**: prefer the Gitee mirror (faster, no VPN needed): `https://gitee.com/colaiven/cola-designer-pro-skills`
+> For international / GitHub users: `https://github.com/colaiven/cola-designer-pro-skills`
 
 ---
 
@@ -49,7 +52,11 @@ Claude will clone the repo, copy the skills, and they work immediately after ins
 ### 1. Clone the repository to a temp directory
 
 ```bash
-git clone https://github.com/colaiven/cola-designer-pro-skills.git /tmp/cdp-skills
+# For users in China (faster, no VPN needed):
+git clone https://gitee.com/colaiven/cola-designer-pro-skills.git /tmp/cdp-skills
+
+# For international / GitHub users:
+# git clone https://github.com/colaiven/cola-designer-pro-skills.git /tmp/cdp-skills
 ```
 
 If no git environment is available, download the zip and extract it.
@@ -83,7 +90,13 @@ A skill's `SKILL.md` only needs to be placed somewhere Claude Code can discover 
 
 ## 📦 Manual Install (human version)
 
-1. Clone this repo: `git clone https://github.com/colaiven/cola-designer-pro-skills.git`
+1. Clone this repo:
+   ```bash
+   # For users in China (faster, no VPN):
+   git clone https://gitee.com/colaiven/cola-designer-pro-skills.git
+   # International / GitHub:
+   # git clone https://github.com/colaiven/cola-designer-pro-skills.git
+   ```
 2. Copy the desired skill directory(s) as-is to the target location:
    - User-level (all projects): `~/.claude/skills/`
    - Project-level (this project only): `<project>/.claude/skills/`
@@ -121,7 +134,7 @@ After generation, drag the resulting `.cd` file into the designer's "Import" (se
 
 ## Notes & Caveats
 
-- `generate-design` currently supports the **large-screen mode only** (`designType: "screen"`); it does not cover the dashboard/report editor (report-editor).
+- `generate-design` supports **single-page screens** (`scaleType: 1`, fixed 1920×1080 fullscreen) and **report/long-page** (`scaleType: 2`, width 1920, height auto-calculated, vertically scrollable); it does not cover the dashboard/report editor (report-editor).
 - `.cd` files have **version validation**: they are output against the supported version `2.7.18` by default; if your target system is on a different version, provide the version number first (see `generate-design/SKILL.md` section 0).
 - When generating a `.cd`, the **background image `bgImg` is left empty by default**; after import, pick one yourself in the designer under "Screen Config → Background Image".
 - `create-custom-component` targets the cola-designer-pro frontend repository (Vue3 plain JS + TDesign) and is not applicable to projects on other tech stacks.
