@@ -100,6 +100,7 @@ for (const key in cpt) { app.component(key.replaceAll('_','-'), cpt[key]) }
 - 图标配置：`e-icon-select`；echarts 自定义形状（symbol）配置：`e-shape-select`。
 - 图片配置：`gallery`（图片素材库）。
 - 位置配置（左/中/右 或 上/中/下 + 自定义数值）：`e-chart-position`。
+- 富文本编辑：使用 `@wangeditor/editor-for-vue` 组件（已新增依赖），支持深色主题适配。
 - helper 组件除 `e-collapse` 外，都需要在表单组件里 `import`（见第 5 节 API 速查）。
 
 ### 3.6 动态数据
@@ -380,7 +381,7 @@ function confirmCheck(filePath){ props.attribute.url = filePath }
 
 1. 用 `cptKey` 查 `colorFields`，查不到再用 `cptOptionKey` 查；都查不到则原样返回（不随主题变化）。
 2. `fill`：主题色生效字段。每项 `{ field, colorIndex }`：
-   - `field`：`option.attribute` 里的颜色字段**点路径**（内部 `eval('option.attribute.'+field)` 取值，支持 `a.b.c` 及数组下标 `yAxis[0].axisLine.lineStyle.color`）。
+   - `field`：`option.attribute` 里的颜色字段**点路径**（内部通过 `getByPath`/`setByPath` 安全取值，支持 `a.b.c` 及数组下标 `yAxis[0].axisLine.lineStyle.color`）。
    - `colorIndex`：`themeGroup[themeIndex].colors` 的下标，缺省 0。
    - 若该字段当前值是**数组**（如饼图配色 `color` 是色板），会在运行时按 `oldColor.length` 对主题色数组 `slice` 截取，保持色板长度一致。
 3. `text`：字体/文本色字段（字符串数组），切换字体色时统一覆盖为 `textColor`。
@@ -403,7 +404,7 @@ function confirmCheck(filePath){ props.attribute.url = filePath }
 - 组件含"文字/标签/坐标轴文本"颜色字段 → 进 `text`。
 - **key 用 `cptKey`**；仅当同一个渲染组件被多个 `cptOptionKey` 复用（派生多套 theme 语义）时，key 改用 `cptOptionKey`（参考 `color.js` 里 `cpt-dataui-sparkline-option` 等 vuedataui 系列）。此时新增的子项也要对应登记一条 cptOptionKey 形式的 key。
 - 纯图片/iframe/视频这类不受主题影响的组件，可不登记。
-- 嵌套字段路径要写全（如 `title.textStyle.color`、`series.color`），与你 attrs 里的结构严格一致；写错会导致 `eval` 取到 undefined，运行时仅 console.warn，不影响其它组件（但该字段不生效）。
+- 嵌套字段路径要写全（如 `title.textStyle.color`、`series.color`），与你 attrs 里的结构严格一致；写错会导致路径取值返回 undefined，运行时仅 console.warn，不影响其它组件（但该字段不生效）。
 
 ---
 

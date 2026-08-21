@@ -65,7 +65,7 @@
     "objMap": { "default": { "show": [], "hidden": [], "changeovers": [], "drillDesignId": "", "designType": "screen", "redirectUrl": "", "redirectType": "_blank" } },
     "changeDataset": [], "paramType": "auto", "paramName": "", "paramValue": "" }
   ```
-- **非交互组件**（本目录下文 JSON 里标注了 `"interaction": { "intType": "none" }` 的组件）→ 直接写 `{ "intType": "none" }`。
+- **非交互组件**（本目录下文 JSON 里标注了 `"interaction": { "intType": "none" }` 的组件）→ **同样用完整默认对象，仅把 `intType` 改为 `"none"`**。目录示例里的 `"intType": "none"` 是**简写**，落盘时必须展开为完整默认对象——不能只写 `{ "intType": "none" }`，否则缺 `objMap`，导入后点选该组件会报错。
 - **多选项交互组件**（选项卡 `cpt-tab`、导航器 `cpt-navigator`、跳转 `cpt-jumper` 等，目录里简写为 `interaction:{multi:true}`）→ 用**完整默认对象 + `"multi": true`** 写入，不要只写 `{multi:true}`。
 
 ## 1. 组件目录总表
@@ -827,12 +827,16 @@ dataText：`[{"name":"日期","value":"事件","color":"可选","icon":"可选"}
     "valueSize": 16, "valueColor": "#ffffff", "iconSize": 16 } }
 ```
 
-### cpt-html-viewer HTML（自定义 HTML）
-无 dataText；`attribute.code` 为 HTML 字符串。
+### cpt-html-viewer HTML查看器（iframe嵌入 / 富文本渲染）
+无 dataText；`attribute.codeType` 决定渲染模式：
+- `richText`（默认）：富文本模式，用 `v-html` 直接渲染 HTML 片段，支持文字样式、列表、图片、表格等，适合报告说明/通知公告/富文本内容。
+- `html`：iframe 嵌入完整 HTML 页面（`srcdoc`），沙箱允许脚本，适合自定义独立页面或外部代码片段。
 ```json
-{ "attribute": { "refreshKey": "htmlViewer", "codeType": "html", "code": "<body><div><h1>Hello</h1></div></body>" },
+{ "attribute": { "refreshKey": "htmlViewer", "codeType": "richText",
+    "code": "<h2><span style=\"color: rgb(135, 20, 0);\">通知主题001</span></h2>" },
   "interaction": { "intType": "none" } }
 ```
+> 报告/长页类建议优先使用 `richText` 模式：无需 iframe 沙箱，样式可与页面主题融合，高度自适应内容更自然。
 
 ---
 
@@ -893,5 +897,5 @@ dataText：`[{"name":"日期","value":"事件","color":"可选","icon":"可选"}
 - [ ] `cptDataForm.dataText` 是**字符串**，内容能被 `JSON.parse`，且结构匹配该组件
 - [ ] `attribute` 里颜色均为具体 hex/rgba（无 `defaultColor[i]` 占位）
 - [ ] 无 dataText 的组件（图片/边框/装饰/天气/视频配置等）未声明 cptDataForm（或按目录含 cptDataForm 则带 dataText）
-- [ ] 每个组件 `cptOption.interaction` 已携带：非交互组件 `{"intType":"none"}`，其余用完整默认交互对象（多选项附加 `"multi":true`）
+- [ ] 每个组件 `cptOption.interaction` 为**完整默认对象**：非交互组件仅把 `intType` 改为 `"none"`（不省略 `objMap`）；多选项附加 `"multi":true`（目录中的 `"intType":"none"` / `"multi":true` 均为简写，落盘时须展开为完整对象）
 - [ ] `id` 唯一；坐标/尺寸在画布内
