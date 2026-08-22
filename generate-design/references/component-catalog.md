@@ -636,6 +636,8 @@ dataText：`{"value":90}`
 
 四个地图组件（渐变地图 `cpt-chart-map-gc`、飞线地图 `cpt-chart-map-migrate`、3D地图 `cpt-chart-map-3d`、3D飞线地图 `cpt-chart-map-3d-line`）都用 `attribute.provinceCode` + `attribute.cityCode` 决定渲染哪个区域：
 
+> ⚠️ **`visualMap.pieces` 必填（硬性约束）**：渐变地图/飞线地图/3D飞线地图的渲染组件会执行 `JSON.parse(JSON.stringify(attribute.visualMap.pieces))` 并逐段赋色 `pieces[i].color = attribute.color[i]`——**缺 `pieces` 会抛 `"undefined" is not valid JSON` 且地图空白**。要求：`pieces` 为非空数组（每项 `{gte, lt?, label}`，从高到低分段），**段数 ≤ `color` 色板长度且 ≤ 7**（配置面板上限 7 段）；分段区间须覆盖 dataText 全部取值。另：渐变地图渲染组件已**注释掉 subtext**，地图副标题/说明文案不会渲染，需另用 `cpt-text` 承载。
+
 - 取值：6 位行政区划 adcode（**字符串**），或 `"china"`（全国）、`"word"`（世界）。
 - 生效优先级：`cityCode` 非空用 `cityCode`，否则用 `provinceCode`，再否则 `china`（默认 `provinceCode:'china', cityCode:''`）。
 - **geojson 来源**：`"china"` 全国地图 geojson 由**前端内置**；其余省/市（含 `"word"` 世界）地图 geojson 由**后端接口按 code 从 `design_geo_data` 表读取**——产品已内置全国 34 个省级 + 全部地级市 geojson，生成时直接用 adcode 指定即可，无需自备资源。
@@ -771,9 +773,13 @@ dataText：`[{"name":"词","value":权重},...]`（value 越大词越大）
 | 变体名 | 基础组件 | 差异字段 |
 |--------|----------|----------|
 | 横向柱状图 | cpt-chart-column | `attribute.direction = "y"`，`series.barWidth = 8`，`series.label.position = "right"` |
-| 单列柱状图 | cpt-chart-column | `attribute.legend = null`，`grid.x2 = 10`，`grid.y2 = 10`；dataText 用 `[{"name","value"}]` |
+| 单列柱状图 | **cptKey 改为 `cpt-chart-column-single`**（cptOptionKey 不变） | `attribute.legend = null`，`grid.x2 = 10`，`grid.y2 = 10`；dataText 用 `[{"name","value"}]` |
+
+> ⚠️ **数据结构硬性约束**：`cpt-chart-column`（含横向/折柱，**不含堆积**）与 `cpt-chart-line` 的渲染组件读 `item.group` 作系列名、执行 `cptData[0].data.forEach`，**dataText 必须是多系列结构** `[{"group":"系列名","data":[{"name","value"},...]}]`；单系列 `[{"name","value"}]` 只能配 `cpt-chart-column-single` / `cpt-chart-column-stereo` / `cpt-chart-column-3d`，否则组件抛错空白。
+> ⚠️ **堆积柱状图例外（重要）**：`cpt-chart-column-stack` 渲染组件（`cpt-chart-column-stack.vue`）读 **`item.name`** 作系列名（而非 `group`），其 dataText 系列对象须用 `name`：`[{"name":"系列名","data":[{"name","value"},...]}]`（内层类目项同样用 `name`，分属不同对象层级不冲突）。照搬通用 `group` 结构会使系列名全为 `undefined`、**图例不显示**。百分比堆积（`enablePa="1"`）同理用 `name`。
 | 横向单列/旋风 | cpt-chart-column | `direction="y"` 等 |
-| 百分比堆积柱图 | cpt-chart-column-stack | `attribute.enablePa = "1"`，`series.label.toFixed = 2` |
+| 堆积柱状图 | **cptKey 改为 `cpt-chart-column-stack`** | dataText 系列对象用 `name`（见上方⚠️）；`enablePa = "0"` |
+| 百分比堆积柱图 | cpt-chart-column-stack | `attribute.enablePa = "1"`，`series.label.toFixed = 2`（dataText 同样用 `name`） |
 | 环形图 | cpt-chart-pie | `series.radius = [40, 60]` |
 | 玫瑰图 | cpt-chart-pie | `series.roseType = "radius"` |
 | 扇形饼图 | cpt-chart-pie | `series.startAngle = 180`，`endAngle = 360`，`center = [50, 65]`，`itemStyle.borderRadius = 20` |
