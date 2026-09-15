@@ -99,6 +99,7 @@
 | cpt-tree-select | 树形选择 | 控件 | cpt-tree-select-option | 400×50 |
 | cpt-num | 数值文本 | 指标卡 | cpt-num-option | 200×80 |
 | cpt-quota | 指标卡 | 指标卡 | cpt-quota-option | 350×150 |
+| cpt-metric-card | 综合指标卡（2.7.19+） | 指标卡 | cpt-metric-card-option | 360×240 |
 | cpt-icon-quota | 统计指标 | 指标卡 | cpt-icon-quota-option | 140×170 |
 | cpt-rect-num | 数字翻牌器 | 指标卡 | cpt-rect-num-option | 350×150 |
 | cpt-time-run | 计时器 | 指标卡 | cpt-time-run-option | 500×80 |
@@ -338,6 +339,28 @@ dataText：`{"value":"数值"}`
     "num": { "fontSize": 40, "color": "#DEEEFF", "fontFamily": "Arial", "fontWeight": "normal" },
     "icon": { "size": 80, "name": "money", "color": "#ffffff" } } }
 ```
+
+### cpt-metric-card 综合指标卡（2.7.19+：图标+主数值/单位+同比环比+迷你趋势+子指标+阈值告警）
+驾驶舱/KPI 行首选卡，一张卡集成：图标+标题、主数值/单位、**同比+环比同卡展示**（▲▼ 红绿）、**迷你趋势曲线**、底部**子指标格**、**阈值告警**主数值变色。支持点击交互（下钻/跳转），用完整默认 interaction 对象。
+dataText：`{"value":数值,"unit":"单位","yoy":同比,"mom":环比,"trend":[...],"sub":[{"label":"标签","value":数值},...]}`
+- `value` 必填；`unit` 可选；`yoy`/`mom` 为小数（0.032 显示 3.20%，负值自动 ▼ + 下跌色），不需要的字段可省略
+- `trend` 按**时间正序**（数组首元素=最早时间点），两种格式均可：纯数值 `[980,1020,1102,...]` 或带横轴描述 `[{"name":"09-01","value":980},...]`（`name` 用作曲线首尾标签，如「09-01 … 09-07」）；≥2 个点才画线，近 7/30 天给 7/30 个点
+- `sub` 底部子指标格（如 入院/出院/手术、在用/空闲/维修），建议 2–4 个
+- `alarm`：`threshold` 满足 `operator`（>/</>=/<=/=）时主数值变为 `alarm.color`，用于超时/超限预警标红；不启用时 `show:false`
+```json
+{ "cptDataForm": { "dataSource": 1, "pollTime": 0,
+    "dataText": "{\"value\":1286,\"unit\":\"人次\",\"yoy\":0.032,\"mom\":-0.011,\"trend\":[{\"name\":\"09-01\",\"value\":980},{\"name\":\"09-02\",\"value\":1020},{\"name\":\"09-03\",\"value\":1102},{\"name\":\"09-04\",\"value\":1045},{\"name\":\"09-05\",\"value\":1180},{\"name\":\"09-06\",\"value\":1230},{\"name\":\"09-07\",\"value\":1286}],\"sub\":[{\"label\":\"入院\",\"value\":326},{\"label\":\"出院\",\"value\":298},{\"label\":\"手术\",\"value\":46}]}" },
+  "attribute": {
+    "bgColor": ["#081a3e", "#0d3a72"], "borderRadius": 6, "padding": 14,
+    "icon": { "show": true, "name": "heart", "color": "#31adfb", "size": 28 },
+    "title": { "text": "今日门诊总量", "fontSize": 15, "color": "#9db8d8" },
+    "num": { "fontSize": 38, "color": "#31adfb", "fontFamily": "Arial", "fontWeight": "bold", "decimals": 0, "separator": true },
+    "growth": { "show": true, "fontSize": 13, "yoyLabel": "同比", "momLabel": "环比", "upColor": "#5daf34", "downColor": "#c70707" },
+    "trend": { "show": true, "height": 44, "lineColor": "#31adfb", "area": true, "areaOpacity": 0.18, "labelShow": true, "labelColor": "#7d97bd" },
+    "sub": { "show": true, "labelColor": "#8aa6c9", "labelSize": 12, "valueColor": "#e6f0ff", "valueSize": 18 },
+    "alarm": { "show": false, "operator": ">", "threshold": "", "color": "#f36d78" } } }
+```
+> 布局建议：全功能显示（趋势+子指标）高度 ≥ 220px（默认 360×240）；只要主数值+同比环比时关掉 `trend.show`/`sub.show`，高度可压至 130–150px，与 cpt-quota 排一行。`num.decimals` 小数位数、`num.separator` 千分位开关。`bgColor` 为渐变双色数组，配色规则同 cpt-quota。
 
 ### cpt-indicator 增长指标（标题 + 数值 + 同比/环比）
 dataText：`{"value":数值,"growth":增长率}`
@@ -891,7 +914,7 @@ dataText：`[{"name":"日期","value":"事件","color":"可选","icon":"可选"}
 详见 SKILL.md 4.2 节「风格选择指南」中的 7 种配色方案。以下为通用规则：
 - 同一大屏内主色统一 1–2 个 + 渐变辅助；KPI 卡片背景可用渐变色对。
 - 图表标题统一字号 16–18，正文坐标轴 12–14。
-- 使用 `cpt-quota` 时 `bgColor` 可用渐变色数组如 `["#0061C2", "#409EFF"]`。
+- 使用 `cpt-quota` / `cpt-metric-card` 时 `bgColor` 可用渐变色数组如 `["#0061C2", "#409EFF"]`；`cpt-metric-card` 的主数值/图标/趋势线随主题色联动。
 - 深色大屏的图表 `axisLabel.color` 用 `#eeeeee`，浅色用 `#666666`；`splitLine.lineStyle.color` 深色用 `["#333","#444"]`，浅色用 `["#ddd","#eee"]`。
 
 ---
