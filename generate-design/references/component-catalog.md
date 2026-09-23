@@ -135,7 +135,7 @@
 | cpt-chart-ring | 环形刻度图 | 仪表盘/进度 | cpt-chart-ring-option | 300×300 |
 | cpt-chart-scatter | 散点图/气泡图 | 散点图 | cpt-chart-scatter-option | 500×400 |
 | cpt-chart-radar | 雷达图 | 雷达图 | cpt-chart-radar-option | 400×300 |
-| cpt-g6-dom | 关系图 | 关系图 | cpt-g6-dom-option | 400×300 |
+| cpt-x6-dom | 关系图（拓扑/流程图） | 关系图 | cpt-x6-dom-option | 400×300 |
 | cpt-chart-funnel | 漏斗图 | 漏斗图 | cpt-chart-funnel-option | 400×300 |
 | cpt-chart-map-gc | 渐变地图 | 地图 | cpt-chart-map-gc-option | 900×600 |
 | cpt-chart-map-migrate | 飞线地图 | 地图 | cpt-chart-map-migrate-option | 900×600 |
@@ -784,8 +784,54 @@ dataText：`[{"name":"词","value":权重},...]`（value 越大词越大）
     "emphasis": { "focus": true, "textStyle": { "textShadowBlur": 10, "textShadowColor": "#ffffff" } } } }
 ```
 
-### cpt-g6-dom 关系图（拓扑）
-无通用 dataText，数据结构复杂（G6 图数据）。生成复杂大屏时慎用；如无把握可跳过此组件。
+### cpt-x6-dom 关系图（拓扑 / 流程图）
+
+适用：大屏/报表需要展示**网络拓扑、机房架构、业务流程图、链路关系**时使用（如机房监控大屏的网络架构分区）。dataText 为 X6 图数据 JSON 字符串：`{"cells":[...]}`，坐标原点在组件左上角，按组件宽高规划布局（组件 ≥ 600×400 才有足够空间）。
+
+**节点**（cells 中 shape 以 `topo-` 开头，zIndex 用 1）：
+
+- 形状：`topo-rect`（矩形/设备）、`topo-ellipse`（椭圆/运营商云）、`topo-diamond`（菱形/防火墙）、`topo-circle`、`topo-star`、`topo-triangle`
+- 结构示例：
+```json
+{ "shape": "topo-rect", "id": "n_core1", "x": 250, "y": 400, "width": 150, "height": 50, "zIndex": 1,
+  "attrs": { "body": { "fill": "#DEE9FF", "stroke": "#5B8FF9", "strokeWidth": 1.5, "rx": 4, "ry": 4 },
+             "text": { "text": "核心交换机A", "fill": "#4192ff", "fontSize": 13 } } }
+```
+- 分区底板（DMZ 区/生产区/管理区等）：大号 `topo-rect`（zIndex 0、浅色填充、`strokeDasharray:"6 4"` 虚线描边），区域名用 `text.refX:10 / refY:6 / textAnchor:"start" / textVerticalAnchor:"top"` 定位到左上角；底板放 cells 数组**最前**
+- 节点文字支持 `\n` 换行（如设备名 + 型号副标注）
+
+**边**（`shape: "edge"`，zIndex 用 0，渲染在节点下方）：
+
+- 三种线型连接器（**必须用 jumpover 系连接器，交叉处才有半圆跳线**）：
+  - 直线：`"connector": { "name": "jumpover", "args": { "type": "arc", "size": 8 } }`
+  - 折线：`"router": { "name": "orth" }, "connector": { "name": "jumpover", "args": { "type": "arc", "size": 8, "radius": 8 } }`
+  - 曲线：`"router": { "name": "topo-smooth-route" }, "connector": { "name": "topo-smooth", "args": { "curvature": 0.5 } }`
+- 端点引用：`"source": { "cell": "n1", "port": "right" }`。port 组名按形状而不同（见下），**引用不存在的 port 会回退到节点中心**
+- 箭头：`attrs.line.targetMarker: { "name": "block", "size": 8 }`；无箭头写 `null`（心跳/旁挂/同步类连线）
+- 标签（带白底描边框，如带宽标注）：`"labels": [{ "position": { "distance": 0.5 }, "attrs": { "label": { "text": "10Gbps", "fill": "#32a2ff", "fontSize": 12 }, "body": { "fill": "#fff", "stroke": "#32a2ff", "strokeWidth": 1, "rx": 3, "ry": 3 } } }]`
+
+**连接桩可用性**（按形状不同，引用前先确认）：
+
+| 形状 | 可用 port id |
+|------|--------------|
+| rect / image / ellipse | top、top-right、right、bottom-right、bottom、bottom-left、left、top-left、center（9 桩）|
+| diamond | top、right、bottom、left（4 顶点）+ top-right/bottom-right/bottom-left/top-left（4 边中点）+ center |
+| star | top、top-right、bottom-right、bottom-left、top-left（5 角尖）+ center（6 桩）|
+| triangle | top、left、right、bottom-left、bottom、bottom-right、center（7 桩）|
+
+**线条动画**（写入 `attrs.line.style.animation`，keyframes 已内置，预览端同步生效）：
+
+| 动画 | 写法 |
+|------|------|
+| 虚线流动 | `line.strokeDasharray: "6 6"` + `line.style.animation: "topo-edge-run 6s infinite linear"` |
+| 隧道水流（出口/主干链路推荐，管道+白点流动） | `line.strokeWidth: 3` + `lineTube: { display:"inline", stroke:线色, strokeOpacity:0.25, strokeWidth:线宽*2.6, strokeDasharray:"" }` + `lineStream: { display:"inline", stroke:"#fff", strokeWidth:2, strokeLinecap:"round", strokeDasharray:"0.1 18", style:{ animation:"topo-edge-run 5s infinite linear" } }` |
+| 粒子移动 | `particle: { display:"inline", topoParticleMotion:true, fill:线色, r:5, style:{ animation:"topo-particle-run 4s linear infinite" } }`（粗线把 r 调大到 ≥ 线宽×0.9） |
+| 闪烁（告警链路） | `line.style.animation: "topo-edge-blink 6s infinite ease-in-out"` |
+| 发光呼吸 | `line.style.animation: "topo-edge-glow 6s infinite ease-in-out"` + `line.style.color: 线色` |
+
+**构图建议**（机房架构示例分层）：Internet/运营商云（椭圆）→ 出口路由器（主备两台+心跳虚线）→ 防火墙（菱形，旁挂负载均衡）→ DMZ 区底板（WAF/Web 集群）→ 双核心交换机（堆叠互联）→ 生产区底板（应用/数据库主备）→ 存储区、管理区（堡垒机）。链路用**隧道水流**（出口主干）、**粒子**（核心下联）、**虚线闪烁**（告警/管理）区分业务语义；节点按层级配色（交换蓝、防火墙红、汇聚绿、存储橙、管理紫）。
+
+**interaction**：关系图为纯展示组件，`intType` 用 `"none"`（仍须携带完整 interaction 对象）。
 
 ---
 
